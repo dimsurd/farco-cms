@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Farco Careers API
+  description: API for managing job postings and applicant submissions for the Farco Careers CMS.
+  version: 1.0.0
+servers:
+  - url: /
+    description: Current Server
+
+paths:
+  /api/occupancies:
+    get:
+      summary: Get all active job postings
+      description: Retrieve a list of all active career opportunities, including their associated departments and locations.
+      tags:
+        - Careers
+      responses:
+        '200':
+          description: A list of active job postings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Occupancy'
+
+  /api/applications/submit:
+    post:
+      summary: Submit a job application
+      description: Submit an application for a specific job posting. Requires a file upload (resume/CV) in PDF, PNG, or JPG format.
+      tags:
+        - Applications
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - occupancy_id
+                - full_name
+                - email
+                - phone_number
+                - file
+              properties:
+                occupancy_id:
+                  type: integer
+                  description: The ID of the occupancy (job posting) being applied for.
+                  example: 1
+                full_name:
+                  type: string
+                  description: Full name of the applicant.
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the applicant.
+                  example: john.doe@example.com
+                phone_number:
+                  type: string
+                  description: Phone number of the applicant.
+                  example: "+1234567890"
+                message:
+                  type: string
+                  description: Optional cover letter or message from the applicant.
+                  example: "I am very interested in this position."
+                file:
+                  type: string
+                  format: binary
+                  description: The applicant's resume or CV (max 5MB, accepted formats pdf, jpg, png).
+      responses:
+        '201':
+          description: Application successfully submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Your application has been submitted successfully."
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: "2026-03-13T10:00:00.000000Z"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Validation failed."
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                    example:
+                      email:
+                        - "The email field is required."
+
+components:
+  schemas:
+    Occupancy:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_title:
+          type: string
+          example: "Senior Software Engineer"
+        department:
+          type: string
+          example: "Engineering"
+        location:
+          type: string
+          example: "Jakarta HQ"
+        work_mode:
+          type: string
+          enum: [On-site, Hybrid, Remote]
+          example: "Hybrid"
+        job_description:
+          type: string
+          description: HTML formatted job description.
+          example: "<h2>About the Role</h2><p>We are looking for...</p>"
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-03-01T10:00:00.000000Z"
