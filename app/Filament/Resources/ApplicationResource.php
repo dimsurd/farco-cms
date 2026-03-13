@@ -68,7 +68,10 @@ class ApplicationResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    \Filament\Tables\Actions\ExportBulkAction::make()
+                        ->exporter(\App\Filament\Exports\ApplicationExporter::class),
                 ]),
+
             ]);
     }
 

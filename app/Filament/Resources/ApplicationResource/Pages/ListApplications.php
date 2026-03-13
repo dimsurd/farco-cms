@@ -11,6 +11,10 @@ class ListApplications extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return []; // No create button — applications come through the public API
+        return [
+            \Filament\Actions\ExportAction::make()
+                ->exporter(\App\Filament\Exports\ApplicationExporter::class)
+                ->color('primary'),
+        ];
     }
 }
