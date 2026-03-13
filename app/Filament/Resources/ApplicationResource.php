@@ -59,7 +59,26 @@ class ApplicationResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('occupancy')
-                    ->relationship('occupancy', 'job_title'),
+                    ->relationship('occupancy', 'job_title')
+                    ->label('Job Position'),
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from')
+                            ->label('Submitted From'),
+                        Forms\Components\DatePicker::make('created_until')
+                            ->label('Submitted Until'),
+                    ])
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data): \Illuminate\Database\Eloquent\Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (\Illuminate\Database\Eloquent\Builder $query, $date): \Illuminate\Database\Eloquent\Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (\Illuminate\Database\Eloquent\Builder $query, $date): \Illuminate\Database\Eloquent\Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -68,8 +87,31 @@ class ApplicationResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    \Filament\Tables\Actions\ExportBulkAction::make()
-                        ->exporter(\App\Filament\Exports\ApplicationExporter::class),
+                    \Filament\Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export Selected to CSV')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $filename = 'applications_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+                            return response()->streamDownload(function () use ($records) {
+                                $handle = fopen('php://output', 'w');
+                                fputcsv($handle, ['ID', 'Job Position', 'Applicant Name', 'Email', 'Phone', 'Message', 'File URL', 'Submitted At']);
+                                
+                                foreach ($records as $record) {
+                                    fputcsv($handle, [
+                                        $record->id,
+                                        $record->occupancy?->job_title,
+                                        $record->full_name,
+                                        $record->email,
+                                        $record->phone_number,
+                                        $record->message,
+                                        asset('storage/' . $record->file_path),
+                                        $record->created_at,
+                                    ]);
+                                }
+                                fclose($handle);
+                            }, $filename, ['Content-Type' => 'text/csv']);
+                        })
                 ]),
 
             ]);
