@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate([
-            'email' => env('SUPER_ADMIN_EMAIL', 'admin@farco.local'),
+            'email' => env('SUPER_ADMIN_EMAIL', 'admin@farco.com'),
         ], [
             'name' => env('SUPER_ADMIN_NAME', 'Super Admin'),
             'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'ChangeMe123!')),
