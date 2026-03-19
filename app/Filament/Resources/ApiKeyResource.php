@@ -79,7 +79,7 @@ class ApiKeyResource extends Resource
                 Tables\Columns\TextColumn::make('last_used_at')
                     ->label('Last Used')
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => $state ? $state->diffForHumans() : 'Never'),
+                    ->formatStateUsing(fn($state) => $state ? $state->diffForHumans() : 'Never'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
