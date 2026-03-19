@@ -9,5 +9,5 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/occupancies', [OccupancyController::class, 'index']);
-Route::post('/applications/submit', [ApplicationController::class, 'submit']);
+Route::get('/occupancies', [OccupancyController::class, 'index'])->middleware('api.key');
+Route::post('/applications/submit', [ApplicationController::class, 'submit'])->middleware('api.key');
